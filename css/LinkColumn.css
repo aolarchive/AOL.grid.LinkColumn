@@ -1,0 +1,11 @@
+a.actionlink {
+    margin-right: 10px;
+    font-weight: normal;
+}
+a.actionlink.last {
+    margin-right: 0;
+    font-weight: normal;
+}
+a:hover.actionlink {
+    text-decoration: underline;
+}

@@ -1,0 +1,25 @@
+== AOL.grid.LinkColumn
+
+A Plugin for grids that adds a column with links that fire events when clicked.
+
+= Sample Usage
+
+  {
+    xtype: 'grid',
+    plugins: [{
+        ptype: 'aol-linkcolumn',
+        links: [
+            ['Edit','editlink'],
+            ['View','viewlink']
+        ]
+    }],   
+    listeners: {
+        editlink: function(grid,i){
+            this.editLink(i);
+        },
+        viewlink: function(grid, i){
+            this.viewLink(i);
+        },
+        scope: this
+    }
+  }
