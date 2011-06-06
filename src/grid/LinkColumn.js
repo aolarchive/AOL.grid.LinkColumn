@@ -40,7 +40,8 @@ AOL.grid.LinkColumn = Ext.extend(Ext.util.Observable, {
     },
     /**
      * The position of the Link Column within the grid column model, available 
-     * options are 'last', with 'first' and an index coming to a later version.
+     * options are 'last' or 'first' and an index option coming in a later 
+     * version. (default to 'last')
      * @cfg {String} columnPosition
      */
     columnPosition: 'last',
@@ -69,15 +70,14 @@ AOL.grid.LinkColumn = Ext.extend(Ext.util.Observable, {
     // private
     init: function(cmp){
         this.links = this.links || [];
+        this.newcollinks = '';
         var newcol = {
             header: this.columnHeader,
-            headerDisabled: true,
-            hideable: false,
-            menuDisabled: true,
-            sortable: false
-        }, newcollinks = '', measureEl = Ext.get(this.measureElId), textSize = {
+            sortable: false,
+            id: 'actioncol'
+        }, measureEl = Ext.get(this.measureElId), textSize = {
             width: 100
-        }, fn;
+        };
         // if a measurement element does not exist, create it at the end of the dom.
         if (!measureEl){
             measureEl = Ext.DomHelper.append(Ext.getBody(),{id:this.measureElId,cls:this.linkClass});
@@ -87,19 +87,21 @@ AOL.grid.LinkColumn = Ext.extend(Ext.util.Observable, {
         // loop through the links and create the html fragment used for the cell.
         Ext.each(this.links, function(lnk,i){
             this.cmp.addEvents(lnk[1]);
-            newcollinks = newcollinks + '<a class="'+this.linkClass+'" action="'+lnk[1]+'">'+lnk[0]+'</a>';
+            this.newcollinks = this.newcollinks + '<a class="'+this.linkClass+'" action="'+lnk[1]+'">'+lnk[0]+'</a>';
         },this);
-        // actually measure the fragment of html to set the column width
-        textSize = Ext.util.TextMetrics.measure(measureEl,newcollinks);
-        // create a simple closure function that renders the link fragment to all of the rows.
-        fn = function(){
-            return newcollinks;
-        };
-        newcol.width = textSize.width+20;
-        newcol.renderer = fn;
+        // setup the column def and actually measure the fragment of html to set the column width
+        Ext.apply(newcol, {
+            width: Ext.util.TextMetrics.measure(measureEl,this.newcollinks).width+20,
+            renderer: function() {
+                 return this.newcollinks;
+            },
+            scope: this
+        });
         // add our new link/action column to the column model of the grid.
-        if (this.columnPosition == 'last'){
+        if (this.columnPosition == 'last') {
             this.cmp.gridColumns.push(newcol);
+        } else if (this.columnPosition == 'first') {
+            this.cmp.gridColumns.unshift(newcol);
         }
     },
     // private
