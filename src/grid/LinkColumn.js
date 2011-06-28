@@ -10,11 +10,15 @@ Ext.ns('AOL.grid');
  * Edit and one for View. These two links would fire off their respective events
  * when clicked, 'Edit' would fire the 'editlink' event passing the row index
  * as the 2nd argument (a grid reference being the first):</p>
+ * <p>A rowSelectEvent should be defined, this is the name of the event that 
+ * will be fired when the user selects the entire row. A standard 'rowselect' 
+ * event will be fired on the selection model as well.</p>
  * <pre><code>
  {
     xtype: 'grid',
     plugins: [{
         ptype: 'aol-linkcolumn',
+        rowSelectEvent: 'viewlink',
         links: [
             ['Edit','editlink'],
             ['View','viewlink']
@@ -56,6 +60,12 @@ AOL.grid.LinkColumn = Ext.extend(Ext.util.Observable, {
      * @cfg {Array} links
      */
     /**
+     * An event (one of the events provided in the links array) that will select
+     * the row in the grid. Also, this event will be fired upon row selection 
+     * in the grid.
+     * @cfg {String} rowSelectEvent
+     */
+    /**
      * The id of a hidden element which is used for measuring the width of 
      * text used in setting the Action columns width.
      * @cfg {String} measureElId
@@ -84,6 +94,13 @@ AOL.grid.LinkColumn = Ext.extend(Ext.util.Observable, {
         }
         this.cmp = cmp;
         this.cmp.on('click', this.onCellClick, this);
+        this.cmp.getSelectionModel().on('rowselect', function(sm, i, rec) {
+            if (this.currentAction) {
+                this.cmp.fireEvent(this.currentAction, this.cmp, i);
+            }else if (this.rowSelectEvent){
+                this.cmp.fireEvent(this.rowSelectEvent, this.cmp, i);
+            }
+        }, this);
         // loop through the links and create the html fragment used for the cell.
         Ext.each(this.links, function(lnk,i){
             this.cmp.addEvents(lnk[1]);
@@ -106,10 +123,16 @@ AOL.grid.LinkColumn = Ext.extend(Ext.util.Observable, {
     },
     // private
     onCellClick: function(e){
-        var el = e.getTarget(), action = el.getAttribute('action');
-        if (action){
-            this.cmp.fireEvent(action,this.cmp,this.cmp.getView().findRowIndex(el));
-        }
+                
+        var el = e.getTarget(), 
+          action = el.getAttribute('action'), 
+          sm = this.cmp.getSelectionModel();
+        
+        if (action) {
+            this.currentAction = action;
+            sm.selectRow(this.cmp.getView().findRowIndex(el));
+            this.currentAction = undefined;
+        }       
     }
 });
 
